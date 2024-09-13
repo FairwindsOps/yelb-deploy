@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: yelb-feature
+  namespace: argocd
+spec:
+  syncPolicy:
+    applicationsSync: sync
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+  - git:
+      repoURL: https://github.com/fairwindsops/yelb-deploy.git
+      revision: HEAD
+      files:
+      - path: "feature/*.json"
+  template:
+    metadata:
+      name: 'yelb-{{.identifier}}'
+    spec:
+      project: team1
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: 'yelb-{{.identifier}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+        - CreateNamespace=true
+        - PruneLast=true
+      source:
+        chart: yelb
+        repoURL: https://charts.fairwinds.com/incubator
+        targetRevision: v0.*.*
+        helm:
+          releaseName: 'yelb-{{.identifier}}'
+          parameters:
+          - name: "appserver.image.tag"
+            value: '{{ .appserverImageTag }}'
+          - name: "ui.image.tag"
+            value: '{{ .uiImageTag }}'
+          - name: "postgresql.global.postgresql.auth.postgresPassword"
+            value: "changemetoaknownsecret"
+          - name: "ingress.hostName"
+            value: "yelb-{{.identifier}}.ftr.hillghost.com"
