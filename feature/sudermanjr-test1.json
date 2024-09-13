@@ -1,4 +1,5 @@
 {
   "identifier": "sudermanjr-test1",
-  "appserverImageTag": "dne"
+  "appserverImageTag": "dne",
+  "uiImageTag": "main"
 }
