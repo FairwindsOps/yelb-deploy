@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: yelb-production
+  namespace: argocd
+spec:
+  project: team1
+  source:
+    chart: yelb
+    repoURL: https://charts.fairwinds.com/incubator
+    targetRevision: v0.*.*
+    helm:
+      releaseName: yelb
+      parameters:
+      - name: "appserver.image.tag"
+        value: "1b5a2467dc635d3a5c1f63b77ac8c91ed9a6b5d3"
+      - name: "ui.image.tag"
+        value: "67509b3096b62ca499692257f5bf5d537516085e"
+      - name: "postgresql.global.postgresql.auth.postgresPassword"
+        value: "changemetoaknownsecret"
+      - name: "ingress.hostName"
+        value: "yelb.hillghost.com"
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: yelb
+  syncPolicy:
+    automated:
+      prune: true
