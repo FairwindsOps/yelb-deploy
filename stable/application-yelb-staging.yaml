@@ -13,7 +13,7 @@ spec:
       releaseName: yelb-staging
       parameters:
         - name: "appserver.image.tag"
-          value: "80fc5da1c27f26c6945c1e4e7b7c15be35197c48"
+          value: "df815c2d390359d14acf3f439b77c75b3735b9df"
         - name: "ui.image.tag"
           value: "317b800489abcdb0e89a3376fcc43f1c3bd9ce6f"
         - name: "postgresql.global.postgresql.auth.postgresPassword"
