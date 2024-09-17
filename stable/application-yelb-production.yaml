@@ -13,9 +13,9 @@ spec:
       releaseName: yelb
       parameters:
         - name: "appserver.image.tag"
-          value: "1b5a2467dc635d3a5c1f63b77ac8c91ed9a6b5d3"
+          value: "e1f2e0bdf8007e9cb125b16ca0cdb5f487cb9a9c"
         - name: "ui.image.tag"
-          value: "67509b3096b62ca499692257f5bf5d537516085e"
+          value: "08b86bd2aac40247759732c269781b1e931e2096"
         - name: "postgresql.global.postgresql.auth.postgresPassword"
           value: "changemetoaknownsecret"
         - name: "ingress.hostName"
