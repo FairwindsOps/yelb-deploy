@@ -15,7 +15,7 @@ spec:
         - name: "appserver.image.tag"
           value: "e1f2e0bdf8007e9cb125b16ca0cdb5f487cb9a9c"
         - name: "ui.image.tag"
-          value: "d6b9af063f3ce8bfc8c9e67e8efac1af4c1a78a2"
+          value: "08b86bd2aac40247759732c269781b1e931e2096"
         - name: "postgresql.global.postgresql.auth.postgresPassword"
           value: "changemetoaknownsecret"
         - name: "ingress.hostName"
