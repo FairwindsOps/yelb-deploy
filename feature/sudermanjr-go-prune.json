@@ -1,6 +1,6 @@
 {
   "identifier": "sudermanjr-go-prune",
   "appserverImageTag": "main",
-  "uiImageTag": "9b5306b877ee2975327ecbd74805f6c3b39073e7",
-  "lastDeployed": "2024-09-17T05:26:48Z"
+  "uiImageTag": "c6f2d46a3f08274b81c34eeb4dee177b4d0bd930",
+  "lastDeployed": "2024-09-17T05:36:56Z"
 }
