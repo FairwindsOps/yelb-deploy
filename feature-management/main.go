@@ -33,8 +33,8 @@ func main() {
 
 	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
 	generateCmdBranchName := generateCmd.String("branch", "", "the branch name being deployed")
-	generateCmdAppserverTag := generateCmd.String("appserverTag", "main", "the tag to use for the appserver")
-	generateCmdUITag := generateCmd.String("ui tag", "main", "the tag to use for the ui")
+	generateCmdAppserverTag := generateCmd.String("appserver-tag", "main", "the tag to use for the appserver")
+	generateCmdUITag := generateCmd.String("ui-tag", "main", "the tag to use for the ui")
 
 	if len(os.Args) < 2 {
 		fmt.Printf(usageString)
