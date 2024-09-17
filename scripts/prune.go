@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -49,6 +50,18 @@ func main() {
 		allFeatures = append(allFeatures, feature)
 	}
 
+	if err := prune(allFeatures); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func prune(allFeatures []FeatureConfig) error {
+	if len(allFeatures) < maxFeatures {
+		log.Println("total features is less than maxFeatures - nothing to do")
+		return nil
+	}
+
+	var totalErrors error
 	sort.Slice(allFeatures, func(i, j int) bool {
 		return allFeatures[i].LastDeployed < allFeatures[j].LastDeployed
 	})
@@ -60,6 +73,10 @@ func main() {
 	log.Printf("remove: %v", featuresToRemove)
 
 	for _, feature := range featuresToRemove {
-		os.Remove("feature/" + feature.Identifer + ".json")
+		err := os.Remove("feature/" + feature.Identifer + ".json")
+		if err != nil {
+			err = errors.Join(totalErrors, err)
+		}
 	}
+	return totalErrors
 }
