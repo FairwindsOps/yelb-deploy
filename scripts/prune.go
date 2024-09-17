@@ -20,7 +20,19 @@ type FeatureConfig struct {
 
 func main() {
 
+	allFeatures, err := getAllFeatures()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := prune(allFeatures); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func getAllFeatures() ([]FeatureConfig, error) {
 	allFeatures := []FeatureConfig{}
+	var allErrors error
 
 	items, _ := os.ReadDir("./feature")
 	for _, item := range items {
@@ -34,27 +46,30 @@ func main() {
 
 		content, err := os.ReadFile(fmt.Sprintf("feature/%s", item.Name()))
 		if err != nil {
-			log.Fatalf("error when opening file: %s", err.Error())
+			allErrors = errors.Join(allErrors, err)
+			continue
 		}
 
 		feature := FeatureConfig{}
 		if err := json.Unmarshal(content, &feature); err != nil {
-			log.Fatalf("error reading feature: %s", err.Error())
+			allErrors = errors.Join(err)
+			continue
 		}
 		output, err := json.MarshalIndent(feature, "", "  ")
 		if err != nil {
-			log.Fatal(err)
+			allErrors = errors.Join(allErrors, err)
+			continue
 		}
 		log.Printf("%s\n%s", item.Name(), string(output))
 
 		allFeatures = append(allFeatures, feature)
 	}
-
-	if err := prune(allFeatures); err != nil {
-		log.Fatal(err)
-	}
+	return allFeatures, allErrors
 }
 
+// prune will delete the json file for any features
+// that are above the maximum count, starting with
+// the oldest lastDeployed
 func prune(allFeatures []FeatureConfig) error {
 	if len(allFeatures) < maxFeatures {
 		log.Println("total features is less than maxFeatures - nothing to do")
