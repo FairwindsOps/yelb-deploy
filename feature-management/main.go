@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"sort"
+	"time"
 )
 
 type FeatureConfig struct {
@@ -29,6 +31,11 @@ func main() {
 	pruneCmd := flag.NewFlagSet("prune", flag.ExitOnError)
 	pruneCmdMaxFeatures := pruneCmd.Int("max-features", 6, "the maximum number of feature branches to keep")
 
+	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
+	generateCmdBranchName := generateCmd.String("branch", "", "the branch name being deployed")
+	generateCmdAppserverTag := generateCmd.String("appserverTag", "main", "the tag to use for the appserver")
+	generateCmdUITag := generateCmd.String("ui tag", "main", "the tag to use for the ui")
+
 	if len(os.Args) < 2 {
 		fmt.Printf(usageString)
 		os.Exit(1)
@@ -37,8 +44,7 @@ func main() {
 	switch os.Args[1] {
 	case "prune":
 		pruneCmd.Parse(os.Args[2:])
-		fmt.Println("subcommand 'parse'")
-		fmt.Println("  maxFeatures:", *pruneCmdMaxFeatures)
+		log.Printf("prune command:\nmaxFeatures: %d", *pruneCmdMaxFeatures)
 		allFeatures, err := getAllFeatures()
 		if err != nil {
 			log.Fatal(err)
@@ -47,10 +53,38 @@ func main() {
 		if err := prune(allFeatures, *pruneCmdMaxFeatures); err != nil {
 			log.Fatal(err)
 		}
+	case "generate":
+		generateCmd.Parse(os.Args[2:])
+
+		if *generateCmdBranchName == "" {
+			branch := os.Getenv("CIRCLE_BRANCH")
+			generateCmdBranchName = &branch
+		}
+
+		log.Printf(`
+generate command args:
+  identifier: %s
+  appserverTag: %s
+  uiTag: %s
+`, sanitizeBranchName(*generateCmdBranchName), *generateCmdAppserverTag, *generateCmdUITag)
+
+		newFeatureConfig := FeatureConfig{
+			AppserverImageTag: *generateCmdAppserverTag,
+			UiImageTag:        *generateCmdUITag,
+			LastDeployed:      time.Now().Format(time.RFC3339),
+			Identifer:         sanitizeBranchName(*generateCmdBranchName),
+		}
+		fmt.Printf("new feature config: %v\n", newFeatureConfig)
+
 	default:
 		fmt.Printf(usageString)
 		os.Exit(1)
 	}
+}
+
+func sanitizeBranchName(in string) string {
+	reg, _ := regexp.Compile("[^a-zA-Z0-9 ]+")
+	return reg.ReplaceAllString(in, "-")
 }
 
 // getAllFeatures will read the feature/ folder and
