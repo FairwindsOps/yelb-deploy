@@ -29,7 +29,7 @@ Requires a 'prune' or 'generate' subcommand
 
 func main() {
 	pruneCmd := flag.NewFlagSet("prune", flag.ExitOnError)
-	pruneCmdMaxFeatures := pruneCmd.Int("max-features", 6, "the maximum number of feature branches to keep")
+	pruneCmdMaxFeatures := pruneCmd.Int("max-features", 2, "the maximum number of feature branches to keep")
 
 	generateCmd := flag.NewFlagSet("generate", flag.ExitOnError)
 	generateCmdBranchName := generateCmd.String("branch", "", "the branch name being deployed")
@@ -138,7 +138,7 @@ func prune(allFeatures []FeatureConfig, maxFeatures int) error {
 
 	var totalErrors error
 	sort.Slice(allFeatures, func(i, j int) bool {
-		return allFeatures[i].LastDeployed < allFeatures[j].LastDeployed
+		return allFeatures[i].LastDeployed > allFeatures[j].LastDeployed
 	})
 
 	featuresToKeep := allFeatures[:maxFeatures]
