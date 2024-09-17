@@ -13,10 +13,10 @@ import (
 )
 
 type FeatureConfig struct {
-	Identifer         string `json:"identifier"`
-	AppserverImageTag string `json:"appserverImageTag"`
-	UiImageTag        string `json:"uiImageTag"`
-	LastDeployed      string `json:"lastDeployed"`
+	Identifer         string    `json:"identifier"`
+	AppserverImageTag string    `json:"appserverImageTag"`
+	UiImageTag        string    `json:"uiImageTag"`
+	LastDeployed      time.Time `json:"lastDeployed"`
 }
 
 const usageString = `
@@ -87,7 +87,7 @@ uiTag: %s
 	newFeatureConfig := FeatureConfig{
 		AppserverImageTag: appserverTag,
 		UiImageTag:        uiTag,
-		LastDeployed:      time.Now().Format(time.RFC3339),
+		LastDeployed:      time.Now(),
 		Identifer:         sanitizedBranchName,
 	}
 
@@ -162,7 +162,7 @@ func prune(allFeatures []FeatureConfig, maxFeatures int) error {
 
 	var totalErrors error
 	sort.Slice(allFeatures, func(i, j int) bool {
-		return allFeatures[i].LastDeployed > allFeatures[j].LastDeployed
+		return allFeatures[i].LastDeployed.After(allFeatures[j].LastDeployed)
 	})
 
 	featuresToKeep := allFeatures[:maxFeatures]
