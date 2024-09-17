@@ -8,7 +8,7 @@ import (
 	"sort"
 )
 
-var maxFeatures int = 1
+var maxFeatures int = 6
 
 type FeatureConfig struct {
 	Identifer         string `json:"identifier"`
