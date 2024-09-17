@@ -18,7 +18,11 @@ type FeatureConfig struct {
 }
 
 const usageString = `
-Expected 'prune' or 'generate' subcommands
+feature-management
+
+A script to manage feature branch deployments in this repository
+
+Requires a 'prune' or 'generate' subcommand
 `
 
 func main() {
@@ -26,7 +30,7 @@ func main() {
 	pruneCmdMaxFeatures := pruneCmd.Int("max-features", 6, "the maximum number of feature branches to keep")
 
 	if len(os.Args) < 2 {
-		fmt.Println(usageString)
+		fmt.Printf(usageString)
 		os.Exit(1)
 	}
 
@@ -44,12 +48,14 @@ func main() {
 			log.Fatal(err)
 		}
 	default:
-		fmt.Println(usageString)
+		fmt.Printf(usageString)
 		os.Exit(1)
 	}
-
 }
 
+// getAllFeatures will read the feature/ folder and
+// return a list of all the FeatureConfig structs
+// that are in that folder
 func getAllFeatures() ([]FeatureConfig, error) {
 	allFeatures := []FeatureConfig{}
 	var allErrors error
