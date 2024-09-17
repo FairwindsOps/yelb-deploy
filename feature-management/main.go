@@ -58,28 +58,52 @@ func main() {
 
 		if *generateCmdBranchName == "" {
 			branch := os.Getenv("CIRCLE_BRANCH")
+			if branch == "" {
+				log.Fatal("could not determine the branch name")
+			}
 			generateCmdBranchName = &branch
 		}
 
-		log.Printf(`
-generate command args:
-  identifier: %s
-  appserverTag: %s
-  uiTag: %s
-`, sanitizeBranchName(*generateCmdBranchName), *generateCmdAppserverTag, *generateCmdUITag)
-
-		newFeatureConfig := FeatureConfig{
-			AppserverImageTag: *generateCmdAppserverTag,
-			UiImageTag:        *generateCmdUITag,
-			LastDeployed:      time.Now().Format(time.RFC3339),
-			Identifer:         sanitizeBranchName(*generateCmdBranchName),
+		if err := generateFeatureConfig(*generateCmdBranchName, *generateCmdUITag, *generateCmdAppserverTag); err != nil {
+			log.Fatal(err)
 		}
-		fmt.Printf("new feature config: %v\n", newFeatureConfig)
 
 	default:
 		fmt.Printf(usageString)
 		os.Exit(1)
 	}
+}
+
+func generateFeatureConfig(branchName string, uiTag string, appserverTag string) error {
+	sanitizedBranchName := sanitizeBranchName(branchName)
+
+	log.Printf(`
+generate command args:
+identifier: %s
+appserverTag: %s
+uiTag: %s
+`, sanitizedBranchName, appserverTag, uiTag)
+
+	newFeatureConfig := FeatureConfig{
+		AppserverImageTag: appserverTag,
+		UiImageTag:        uiTag,
+		LastDeployed:      time.Now().Format(time.RFC3339),
+		Identifer:         sanitizedBranchName,
+	}
+
+	outputJSON, err := json.MarshalIndent(newFeatureConfig, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("writing new feature config: %v\n", string(outputJSON))
+	fileName := fmt.Sprintf("feature/%s.json", sanitizedBranchName)
+
+	f, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	defer f.Close()
+	f.WriteString(string(outputJSON))
+
+	return nil
 }
 
 func sanitizeBranchName(in string) string {
