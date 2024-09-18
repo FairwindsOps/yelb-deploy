@@ -35,6 +35,7 @@ func main() {
 	generateCmdBranchName := generateCmd.String("branch", "", "the branch name being deployed")
 	generateCmdAppserverTag := generateCmd.String("appserver-tag", "main", "the tag to use for the appserver")
 	generateCmdUITag := generateCmd.String("ui-tag", "main", "the tag to use for the ui")
+	generateCmdComponent := generateCmd.String("component", "", "the component currently being update. appserver|ui")
 
 	if len(os.Args) < 2 {
 		fmt.Printf(usageString)
@@ -64,7 +65,7 @@ func main() {
 			generateCmdBranchName = &branch
 		}
 
-		if err := generateFeatureConfig(*generateCmdBranchName, *generateCmdUITag, *generateCmdAppserverTag); err != nil {
+		if err := generateFeatureConfig(*generateCmdBranchName, *generateCmdUITag, *generateCmdAppserverTag, *generateCmdComponent); err != nil {
 			log.Fatal(err)
 		}
 
@@ -74,30 +75,54 @@ func main() {
 	}
 }
 
-func generateFeatureConfig(branchName string, uiTag string, appserverTag string) error {
+func generateFeatureConfig(branchName string, uiTag string, appserverTag string, component string) error {
 	sanitizedBranchName := sanitizeBranchName(branchName)
+	fileName := fmt.Sprintf("feature/%s.json", sanitizedBranchName)
 
 	log.Printf(`
-generate command args:
-identifier: %s
-appserverTag: %s
-uiTag: %s
-`, sanitizedBranchName, appserverTag, uiTag)
+	generate command args:
+	identifier: %s
+	appserverTag: %s
+	uiTag: %s
+	`, sanitizedBranchName, appserverTag, uiTag)
 
-	newFeatureConfig := FeatureConfig{
-		AppserverImageTag: appserverTag,
-		UiImageTag:        uiTag,
-		LastDeployed:      time.Now(),
-		Identifer:         sanitizedBranchName,
+	featureConfig := FeatureConfig{}
+	if _, err := os.Stat(fileName); errors.Is(err, os.ErrNotExist) {
+		// Need to generate new featureConfig
+		featureConfig = FeatureConfig{
+			AppserverImageTag: appserverTag,
+			UiImageTag:        uiTag,
+			LastDeployed:      time.Now(),
+			Identifer:         sanitizedBranchName,
+		}
+	} else {
+		// This feature already exists, just need to update it
+		data, err := os.ReadFile(fileName)
+		if err != nil {
+			return err
+		}
+		existingFeature := FeatureConfig{}
+		if err := json.Unmarshal(data, &existingFeature); err != nil {
+			return err
+		}
+		switch component {
+		case "appserver":
+			existingFeature.AppserverImageTag = appserverTag
+		case "ui":
+			existingFeature.UiImageTag = uiTag
+		default:
+			return fmt.Errorf("component must be one of appserver|ui")
+		}
+		existingFeature.LastDeployed = time.Now()
+		featureConfig = existingFeature
 	}
 
-	outputJSON, err := json.MarshalIndent(newFeatureConfig, "", "  ")
+	outputJSON, err := json.MarshalIndent(featureConfig, "", "  ")
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("writing new feature config: %v\n", string(outputJSON))
-	fileName := fmt.Sprintf("feature/%s.json", sanitizedBranchName)
 
 	f, _ := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	defer f.Close()
