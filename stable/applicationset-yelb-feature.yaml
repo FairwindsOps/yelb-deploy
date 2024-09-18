@@ -23,6 +23,9 @@ spec:
         server: "https://kubernetes.default.svc"
         namespace: 'yelb-{{.identifier}}'
       syncPolicy:
+        managedNamespaceMetadata:
+          labels:
+            fairwinds.com/environment: yelb-feature
         automated:
           prune: true
           selfHeal: true
